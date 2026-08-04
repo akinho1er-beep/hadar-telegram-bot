@@ -27,3 +27,4 @@ jobs:
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
           TIMEZONE: ${{ secrets.TIMEZONE }}
         run: python publish_once.py
+# Actions v5/v6
