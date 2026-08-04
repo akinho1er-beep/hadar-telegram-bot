@@ -4,11 +4,16 @@ on:
   schedule:
     - cron: "13,33,53 * * * *"
   workflow_dispatch:
+    inputs:
+      force_test:
+        description: "Envoyer immédiatement un test Swamp Land"
+        required: true
+        default: false
+        type: boolean
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-
     steps:
       - name: Télécharger le projet
         uses: actions/checkout@v5
@@ -26,4 +31,5 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
           TIMEZONE: ${{ secrets.TIMEZONE }}
+          FORCE_TEST: ${{ inputs.force_test || 'false' }}
         run: python publish_once.py

@@ -1,4 +1,4 @@
-"""Publishes at most one signal for the current scheduled GitHub Actions run."""
+"""One-shot publisher for GitHub Actions. Accepts small scheduler delays."""
 import asyncio, os, random
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -26,9 +26,18 @@ def caption(name, target, mult, cols):
             "⚠️ Ce signal est généré pour les nouveaux inscrits avec le code promo <b>HADAR</b>. Jouez de façon responsable.\n\n"
             "Inscris-toi avec le code promo <b>HADAR</b> et joue avec nous\n\n" + LINKS)
 
-def choose(now):
-    # GitHub cron runs at UTC :12, :32, :52; local Cotonou is UTC+1.
-    target = (now + timedelta(minutes=7)).replace(second=0, microsecond=0)
+def select_game(now):
+    if os.getenv("FORCE_TEST", "false").lower() == "true":
+        return "swamp_land", now.replace(second=0, microsecond=0) + timedelta(minutes=7)
+    # GitHub cron can start late. Find the nearest target (00/20/40) to now+7,
+    # accepting up to 10 minutes of delay, then apply the parity schedule.
+    expected = now + timedelta(minutes=7)
+    base = expected.replace(second=0, microsecond=0)
+    candidates = [base.replace(minute=0), base.replace(minute=20), base.replace(minute=40)]
+    candidates += [c + timedelta(hours=1) for c in candidates]
+    target = min(candidates, key=lambda c: abs((c - expected).total_seconds()))
+    if abs((target - expected).total_seconds()) > 10 * 60:
+        return None
     for gid, (name, levels, mult, minute, offset) in GAMES.items():
         if target.minute == minute and target.hour % 2 == offset:
             return gid, target
@@ -37,7 +46,7 @@ def choose(now):
 async def main():
     tz = ZoneInfo(os.getenv("TIMEZONE", "Africa/Porto-Novo"))
     now = datetime.now(tz)
-    selected = choose(now)
+    selected = select_game(now)
     if not selected:
         print(f"Aucun signal prévu pour {now.isoformat()}")
         return
