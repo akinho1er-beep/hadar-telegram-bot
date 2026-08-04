@@ -2,7 +2,7 @@
 
 on:
   schedule:
-    - cron: "13,23,33,53 * * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
       force_test:
@@ -33,4 +33,6 @@ jobs:
           TIMEZONE: ${{ secrets.TIMEZONE }}
           FORCE_TEST: ${{ inputs.force_test || 'false' }}
         run: python publish_once.py
+
+
 
