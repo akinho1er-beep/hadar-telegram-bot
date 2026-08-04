@@ -29,20 +29,33 @@ def caption(name, target, mult, cols):
 def select_game(now):
     if os.getenv("FORCE_TEST", "false").lower() == "true":
         return "swamp_land", now.replace(second=0, microsecond=0) + timedelta(minutes=7)
-    # GitHub cron can start late. Find the nearest target (00/20/40) to now+7,
-    # accepting up to 10 minutes of delay, then apply the parity schedule.
+
     expected = now + timedelta(minutes=7)
     base = expected.replace(second=0, microsecond=0)
-    candidates = [base.replace(minute=0), base.replace(minute=20), base.replace(minute=40)]
-    candidates += [c + timedelta(hours=1) for c in candidates]
-    target = min(candidates, key=lambda c: abs((c - expected).total_seconds()))
+
+    candidates = []
+
+    for hour_offset in range(-1, 3):
+        hour_base = base.replace(minute=0) + timedelta(hours=hour_offset)
+
+        for minute in (0, 20, 30, 40):
+            candidates.append(hour_base.replace(minute=minute))
+
+    target = min(
+        candidates,
+        key=lambda candidate: abs((candidate - expected).total_seconds())
+    )
+
     if abs((target - expected).total_seconds()) > 10 * 60:
         return None
-    for gid, (name, levels, mult, minute, offset) in GAMES.items():
-        if target.minute == minute and target.hour % 2 == offset:
-            return gid, target
-    return None
 
+    for game_id, game in GAMES.items():
+        name, levels, multiplier, minute, hour_offset = game
+
+        if target.minute == minute and target.hour % 2 == hour_offset:
+            return game_id, target
+
+    return None
 async def main():
     tz = ZoneInfo(os.getenv("TIMEZONE", "Africa/Porto-Novo"))
     now = datetime.now(tz)
