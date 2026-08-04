@@ -2,7 +2,7 @@ name: Publication des signaux Telegram
 
 on:
   schedule:
-    - cron: "*/20 * * * *"
+   - cron: "12,32,52 * * * *"
   workflow_dispatch:
 
 jobs:
