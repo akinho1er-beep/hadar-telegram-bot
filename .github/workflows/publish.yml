@@ -1,8 +1,8 @@
-name: Publication des signaux Telegram
+﻿name: Publication des signaux Telegram
 
 on:
   schedule:
-   - cron: "12,32,52 * * * *"
+    - cron: "12,32,52 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -27,4 +27,3 @@ jobs:
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
           TIMEZONE: ${{ secrets.TIMEZONE }}
         run: python publish_once.py
-# Actions v5/v6
