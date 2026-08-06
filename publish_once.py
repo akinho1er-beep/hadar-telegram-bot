@@ -19,12 +19,51 @@ LINKS = ("1xbet : https://reffpa.com/L?tag=d_4957531m_97c_toptransfers_winter26_
          "Afro Pari : https://apaff.top/L?tag=d_3822237m_70055c_&site=3822237&ad=70055\n"
          "Fast Pari : https://fastpaff.top/L?tag=d_4324108m_77525c_&site=4324108&ad=77525")
 
-def caption(name, target, mult, cols):
-    seq = "\n".join(f"Niveau {i}: Colonne {c}" for i, c in enumerate(cols, 1))
-    return (f"🔔 <b>SIGNAL DÉTECTÉ — {name} 🎮</b>\n\n⏰ Tranche de jeu : {target:%H:%M} - {(target+timedelta(minutes=5)):%H:%M}\n\n"
-            f"🔄 Tentatives conseillées : 2 tours / 2 reprises\n\n🎯 Objectif : Côte {mult}+\n\n📌 <b>SÉQUENCE À SUIVRE :</b>\n\n{seq}\n\n"
-            "⚠️ Ce signal est généré pour les nouveaux inscrits avec le code promo <b>HADAR</b>. Jouez de façon responsable.\n\n"
-            "Inscris-toi avec le code promo <b>HADAR</b> et joue avec nous\n\n" + LINKS)
+def captions(name, target, mult, cols):
+    nl = chr(10)
+
+    sequence_fr = nl.join(
+        f"<b>Niveau {i} : Colonne {c}</b>"
+        for i, c in enumerate(cols, 1)
+    )
+
+    sequence_en = nl.join(
+        f"<b>Level {i}: Column {c}</b>"
+        for i, c in enumerate(cols, 1)
+    )
+
+    links = (
+        "1xbet : https://reffpa.com/L?tag=d_4957531m_97c_toptransfers_winter26_fr&site=4957531&ad=97&r=line/football" + nl
+        + "Afro Pari : https://apaff.top/L?tag=d_3822237m_70055c_&site=3822237&ad=70055" + nl
+        + "Fast Pari : https://fastpaff.top/L?tag=d_4324108m_77525c_&site=4324108&ad=77525"
+    )
+
+    french = (
+        f"🔔 <b>SIGNAL DÉTECTÉ — {name} 🎮</b>{nl}{nl}"
+        f"⏰ Tranche de jeu : {target:%H:%M} - {(target + timedelta(minutes=5)):%H:%M}{nl}{nl}"
+        f"🔄 Tentatives conseillées : 2 tours / 2 reprises{nl}{nl}"
+        f"🎯 Objectif : Côte {mult}+{nl}{nl}"
+        f"📌 <b>SÉQUENCE À SUIVRE :</b>{nl}{nl}"
+        f"{sequence_fr}{nl}{nl}"
+        f"⚠️ Ce signal est généré pour les nouveaux inscrits avec le code promo <b>HADAR</b>. Jouez de façon responsable.{nl}{nl}"
+        f"Inscris-toi avec le code promo <b>HADAR</b> et joue avec nous{nl}{nl}"
+        f"{links}"
+    )
+
+    english = (
+        f"🔔 <b>SIGNAL DETECTED — {name} 🎮</b>{nl}{nl}"
+        f"⏰ Game time: {target:%H:%M} - {(target + timedelta(minutes=5)):%H:%M}{nl}{nl}"
+        f"🔄 Recommended attempts: 2 rounds / 2 retries{nl}{nl}"
+        f"🎯 Target: Odds {mult}+{nl}{nl}"
+        f"📌 <b>SEQUENCE TO FOLLOW:</b>{nl}{nl}"
+        f"{sequence_en}{nl}{nl}"
+        f"⚠️ This signal is generated for new players registered with the <b>HADAR</b> promo code. Please play responsibly.{nl}{nl}"
+        f"Sign up with the <b>HADAR</b> promo code and play with us{nl}{nl}"
+        f"{links}"
+    )
+
+    return french, english
+
 
 def select_game(now):
     if os.getenv("FORCE_TEST", "false").lower() == "true":
@@ -63,7 +102,21 @@ async def main():
     cols = [random.randint(1, 5) for _ in range(levels)]
     bot = Bot(os.environ["BOT_TOKEN"])
     try:
-        await bot.send_photo(os.environ["CHANNEL_ID"], FSInputFile(image), caption=caption(name, target, mult, cols), parse_mode=ParseMode.HTML)
+        french_caption, english_caption = captions(name, target, mult, cols)
+
+        await bot.send_photo(
+            os.environ["CHANNEL_ID"],
+            FSInputFile(image),
+            caption=french_caption,
+            parse_mode=ParseMode.HTML,
+        )
+
+        await bot.send_photo(
+            os.environ["CHANNEL_ID"],
+            FSInputFile(image),
+            caption=english_caption,
+            parse_mode=ParseMode.HTML,
+        )
         print(f"Publication réussie: {gid} pour {target.isoformat()}")
     finally:
         await bot.session.close()
