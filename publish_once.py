@@ -1,4 +1,4 @@
-"""One-shot publisher for GitHub Actions. Accepts small scheduler delays."""
+"""One-shot publisher for GitHub Actions."""
 import asyncio, os, random
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -28,34 +28,26 @@ def caption(name, target, mult, cols):
 
 def select_game(now):
     if os.getenv("FORCE_TEST", "false").lower() == "true":
-        return "swamp_land", now.replace(second=0, microsecond=0) + timedelta(minutes=7)
+        gid = os.getenv("TEST_GAME", "swamp_land")
+        if gid not in GAMES:
+            raise ValueError(f"TEST_GAME invalide: {gid}")
+        return gid, now.replace(second=0, microsecond=0) + timedelta(minutes=7)
 
     expected = now + timedelta(minutes=7)
     base = expected.replace(second=0, microsecond=0)
-
     candidates = []
-
     for hour_offset in range(-1, 3):
         hour_base = base.replace(minute=0) + timedelta(hours=hour_offset)
-
         for minute in (0, 20, 30, 40):
             candidates.append(hour_base.replace(minute=minute))
-
-    target = min(
-        candidates,
-        key=lambda candidate: abs((candidate - expected).total_seconds())
-    )
-
+    target = min(candidates, key=lambda c: abs((c - expected).total_seconds()))
     if abs((target - expected).total_seconds()) > 10 * 60:
         return None
-
-    for game_id, game in GAMES.items():
-        name, levels, multiplier, minute, hour_offset = game
-
-        if target.minute == minute and target.hour % 2 == hour_offset:
-            return game_id, target
-
+    for gid, game in GAMES.items():
+        if target.minute == game[3] and target.hour % 2 == game[4]:
+            return gid, target
     return None
+
 async def main():
     tz = ZoneInfo(os.getenv("TIMEZONE", "Africa/Porto-Novo"))
     now = datetime.now(tz)
