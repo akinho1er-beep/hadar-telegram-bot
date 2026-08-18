@@ -1,4 +1,4 @@
-name: Publication des signaux Telegram
+﻿name: Publication des signaux Telegram
 
 on:
   schedule:
@@ -6,12 +6,12 @@ on:
   workflow_dispatch:
     inputs:
       force_test:
-        description: "Déclencher un jeu immédiatement"
+        description: "DÃ©clencher un jeu immÃ©diatement"
         required: true
         default: false
         type: boolean
       test_game:
-        description: "Jeu à déclencher"
+        description: "Jeu Ã  dÃ©clencher"
         required: true
         default: swamp_land
         type: choice
@@ -26,15 +26,15 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Télécharger le projet
+      - name: TÃ©lÃ©charger le projet
         uses: actions/checkout@v5
       - name: Installer Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-      - name: Installer les dépendances
+      - name: Installer les dÃ©pendances
         run: pip install -r requirements.txt
-      - name: Publier le signal éventuel
+      - name: Publier le signal Ã©ventuel
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
@@ -42,3 +42,4 @@ jobs:
           FORCE_TEST: ${{ inputs.force_test || 'false' }}
           TEST_GAME: ${{ inputs.test_game || 'swamp_land' }}
         run: python publish_once.py
+
